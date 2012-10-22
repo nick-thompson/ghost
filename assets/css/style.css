@@ -1,0 +1,93 @@
+body {
+  margin: 10px;
+  background-color: #111111;
+}
+ul {
+  padding: 0px;
+  margin: 0px;
+  list-style-type: none;
+}
+ul > li {
+  padding: 0px;
+  margin: 0px;
+  float: left;
+  clear: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+td {
+  text-align: center;
+  padding: 0px;
+  border: 0;
+}
+.panel-row {
+  height: 80px;
+  font: 12px "courier new";
+  color: #f5f5f5;
+  border-top: 1px solid #353535;
+  border-left: 1px solid #353535;
+}
+.config-panel,
+.load-panel,
+.instrument-panel {
+  height: 80px;
+  font: 12px "courier new";
+  color: #f5f5f5;
+  background-color: #0d0d0d;
+  border-top: 1px solid #353535;
+}
+.track {
+  font: 12px "courier new";
+  background-color: #111111;
+  color: #f5f5f5;
+  border-top: 1px solid #353535;
+  border-right: 1px solid #353535;
+  border-bottom: 1px solid #353535;
+  box-sizing: border-box;
+  padding: 1px;
+}
+li:first-child {
+  border-left: 1px solid #353535;
+}
+.title-cell {
+  height: 50px;
+  background-color: #0d0d0d;
+  vertical-align: center;
+  text-align: center;
+}
+td.sc-note {
+  width: 30px;
+}
+td.sc-gain {
+  width: 14px;
+  color: #939251
+}
+td.sc-pan {
+  width: 14px;
+  color: #ddca7c;
+}
+td.ruler-cell {
+  padding: 6px;
+  color: #d0782a;
+}
+.track tr:nth-child(4n + 2) {
+  background-color: #191919;
+}
+.track tr:nth-child(4) {
+  background-color: #353535;
+}
+input[type="text"] {
+  padding: 6px;
+  margin: 0px;
+  background-color: transparent;
+  border: 0;
+  outline: 0;
+  width: inherit;
+  font: inherit;
+  color: inherit;
+}
+input[type="text"]:focus {
+  background-color: #4f869a;
+}

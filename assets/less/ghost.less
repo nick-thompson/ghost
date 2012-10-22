@@ -1,0 +1,181 @@
+
+@white: #f5f5f5;
+
+@grayDark: #353535;
+@grayDarker: #111111;
+@grayDarkest: #0d0d0d;
+@downbeatAccent: #191919;
+
+@green: #939251;
+@tan: #ddca7c;
+@blue: #4f869a;
+@orange: #d0782a;
+
+body {
+  margin: 10px;
+  background-color: @grayDarker;
+  font: 12px "courier new";
+  color: @white;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+td {
+  text-align: center;
+  padding: 0px;
+  border: 0;
+}
+
+// Configuration row defaults
+.config-panel,
+.load-panel,
+.instrument-panel {
+  height: 80px;
+  background-color: @grayDarkest;
+  border-top: 1px solid @grayDark;
+}
+
+.config-panel {
+  width: 100px;
+}
+
+.instrument-panel {
+  width: 190px;
+  vertical-align: top;
+  color: @green;
+  border-left: 1px solid @grayDark;
+
+  ol {
+    list-style-type: decimal-leading-zero;
+    margin: 0px;
+    margin-left: -6px;
+    margin-top: 2px;
+
+    li {
+      height: 15px;
+      text-align: left;
+    }
+
+    li.active {
+      font-weight: bold;
+    }
+
+    li:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.load-panel {
+
+  input[type="text"] {
+    width: 400px;
+    height: 14px;
+    background-color: @downbeatAccent;
+    border-color: @grayDark;
+    color: @white;
+    font: 12px "courier new";
+  }
+}
+
+// To organize tracks side by side
+ul.track-list {
+  padding: 0px;
+  margin: 0px;
+  list-style-type: none;
+
+  li {
+    padding: 0px;
+    margin: 0px;
+    float: left;
+    clear: none;
+  }
+
+  li:first-child {
+    border-left: 1px solid @grayDark;
+  }
+}
+
+// Styles for a given track in the editor
+.track {
+  background-color: @grayDarker;
+  border-top: 1px solid @grayDark;
+  border-right: 1px solid @grayDark;
+  border-bottom: 1px solid @grayDark;
+  .box-sizing(border-box);
+  padding: 1px;
+
+  .title-cell {
+    height: 50px;
+    background-color: @grayDarkest;
+    vertical-align: center;
+  }
+
+  .sc-note {
+    width: 30px;
+  }
+
+  .sc-gain {
+    width: 14px;
+    color: @green;
+  }
+
+  .sc-pan {
+    width: 14px;
+    color: @tan;
+  }
+
+  .ruler-cell {
+    padding: 6px;
+    color: @orange !important;
+  }
+
+  .beatAccent {
+    background-color: @downbeatAccent;
+  }
+
+  .highlight {
+    background-color: @grayDark;
+  }
+}
+
+input[type="text"].track-input {
+  padding: 6px;
+  margin: 0px;
+  background-color: transparent;
+  border: 0;
+  outline: 0;
+  width: inherit;
+  font: inherit;
+  color: inherit;
+}
+
+input[type="text"].track-input:focus {
+  background-color: @blue;
+}
+
+// Styles for the config inputs up top
+.input-prepend {
+
+  .add-on {
+    height: 14px;
+    background-color: @grayDark;
+    border-color: @grayDark;
+    color: @tan;
+    text-shadow: none !important;
+    font: 12px "courier new";
+  }
+
+  input[type="text"] {
+    height: 14px;
+    width: 40px;
+    background-color: transparent;
+    border-color: @grayDark;
+    color: @white;
+    font: 12px "courier new";
+  }
+}
+

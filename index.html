@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Ghost // HTML5 Audio Tracker</title>
+    <link rel="stylesheet" href="assets/css/ghost.css">
+  </head>
+  <body>
+
+    <table role="main" id="main">
+      <tr>
+        <td class="config-panel">
+          <div class="input-prepend" id="bpm-control">
+            <span class="add-on">BPM</span>
+            <input id="appendedInput" type="text" value="140" maxlength="3">
+          </div>
+          <div class="input-prepend" id="lpb-control">
+            <span class="add-on">LPB</span>
+            <input id="appendedInput" type="text" value="4" maxlength="3">
+          </div>
+        </td>
+        <td class="load-panel">
+          <input type="text" class="large" placeholder="Enter a url to load a sample..." id="sample-load">
+        </td>
+        <td class="instrument-panel">
+          <ol> </ol>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=3>
+          <ul class="track-list">
+          </ul>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Templates -->
+    <script type="text/template" id="TrackTemplate">
+      <table class="track">
+        <tr>
+          <td class="title-cell" colspan=3>
+            <%= trackTitle %>
+          </td>
+        </tr>
+        <% for (var i = 0; i < 64; i++) { %>
+          <tr>
+            <td class="sc-note">
+              <input type="text" class="track-input" value="...." readonly>
+            </td>
+            <td class="sc-gain">
+              <input type="text" class="track-input" value="80" readonly>
+            </td>
+            <td class="sc-pan">
+              <input type="text" class="track-input" value="80" readonly>
+            </td>
+          </tr>
+          <% } %>
+      </table>
+    </div>
+  </script>
+
+  <script type="text/template" id="RulerTemplate">
+    <li>
+    <table class="track">
+      <tr>
+        <td class="title-cell">&nbsp;</td>
+      </tr>
+      <% for (var i = 0; i < 64; i++) { %>
+        <tr>
+          <td class="sc-gain ruler-cell">
+            <%= (i < 10) ? "0" + i : i %>
+          </td>
+        </tr>
+        <% } %>
+    </table>
+    </li>
+  </script>
+
+  <script data-main="app/config" src="assets/js/libs/require.js"></script>
+
+</body>
+</html>
