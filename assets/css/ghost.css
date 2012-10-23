@@ -1583,9 +1583,6 @@ input[type="text"].track-input {
   font: inherit;
   color: inherit;
 }
-input[type="text"].track-input:focus {
-  background-color: #4f869a;
-}
 .input-prepend .add-on {
   height: 14px;
   background-color: #353535;

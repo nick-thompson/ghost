@@ -7,7 +7,7 @@ $ ->
     buffers: []
 
   # DOM Templates to be inserted dynamically
-  trackTemplate = '''
+  trackTemplate = """
     <table class="track">
       <tr>
         <td class="title-cell" colspan=3>
@@ -20,17 +20,17 @@ $ ->
             <input type="text" class="track-input" value="...." readonly>
           </td>
           <td class="sc-gain">
-            <input type="text" class="track-input" value="80" readonly>
+            <input type="text" class="track-input" value=".." maxlength="2">
           </td>
           <td class="sc-pan">
-            <input type="text" class="track-input" value="80" readonly>
+            <input type="text" class="track-input" value=".." maxlength="2">
           </td>
         </tr>
       <% } %>
     </table>
-  '''
+  """
 
-  rulerTemplate = '''
+  rulerTemplate = """
     <li>
       <table class="track">
       <tr>
@@ -45,12 +45,18 @@ $ ->
         <% } %>
       </table>
     </li>
-  '''
+  """
 
   # Track model
   class Track extends Backbone.Model
     defaults: ->
-      eventList: {}
+      gainNode = app.context.createGainNode()
+      panNode = app.context.createPanner()
+      gainNode.connect panNode
+      panNode.connect app.context.destination
+      hitlist: {}
+      panNode: panNode
+      gainNode: gainNode
 
   class TrackView extends Backbone.View
     tagName: 'li'
@@ -60,30 +66,40 @@ $ ->
       @$el.html @template
         title: @model.get 'title'
       $('ul').append @el
+
     keyHandle: (e) ->
-      console.log 'hi'
-      console.log @model
       return false if not app.activeBuffer?
       idx = app.buffers.indexOf(app.activeBuffer) + 1
       label = "C.0#{idx}"
       line = $(e.target).closest('tr').index() - 1
-      eventList = @model.get 'eventList'
-      buffer = app.activeBuffer
-
-      if eventList[line]?
-        console.log eventList[line]
-        app.metronome.removeListener "t#{line}", eventList[line]
-      eventList[line] = do (buffer = app.activeBuffer) =>
-        () => @fire buffer
-      app.metronome.addListener "t#{line}", eventList[line]
+      hitlist = @model.get 'hitlist'
+      @updateHit hitlist, line
       $(e.target).val label
-    fire: (buffer) ->
+
+    gainHandle: (e) ->
+      line = $(e.target).closest('tr').index() - 1
+      hitlist = @model.get 'hitlist'
+      @updateHit hitlist, line
+
+    updateHit: (hitlist, line) ->
+      app.metronome.removeListener "t#{line}", hitlist[line] if hitlist[line]?
+      gain = parseFloat @$el.find("tr:nth-child(#{line+2}) .sc-gain input").val()
+      gain = if _.isNaN gain then 1.0 else gain / 80
+      hitlist[line] = do (buffer = app.activeBuffer) =>
+        () => @fire
+          buffer: buffer
+          gain: gain
+      app.metronome.addListener "t#{line}", hitlist[line]
+
+    fire: (hit) ->
       @node = app.context.createBufferSource()
-      @node.buffer = buffer
-      @node.connect app.context.destination
+      @node.buffer = hit.buffer
+      @node.connect @model.get 'gainNode'
+      @model.get('gainNode').gain.value = hit.gain
       @node.noteOn 0
     events:
       'keypress .sc-note > input': 'keyHandle'
+      'change .sc-gain > input': 'gainHandle'
 
   # Build the editor
   $('ul').append _.template rulerTemplate, {}
@@ -131,6 +147,14 @@ $ ->
     app.activeBuffer = app.buffers[index]
     $(@).parent().children().removeClass 'active'
     $(@).addClass 'active'
+
+  $('input:not([readonly])').on 'focus', ->
+    that = $(@)
+    that.select()
+    setTimeout ( () -> that.select() ) , 0
+    that.mouseup ->
+      that.unbind 'mouseup'
+      return false
 
   ## Key bindings
 

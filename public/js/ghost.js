@@ -10,8 +10,8 @@
       metronome: new Metronome(140, 4),
       buffers: []
     };
-    trackTemplate = '<table class="track">\n  <tr>\n    <td class="title-cell" colspan=3>\n      <%= title %>\n    </td>\n  </tr>\n  <% for (var i = 0; i < 64; i++) { %>\n    <tr>\n      <td class="sc-note">\n        <input type="text" class="track-input" value="...." readonly>\n      </td>\n      <td class="sc-gain">\n        <input type="text" class="track-input" value="80" readonly>\n      </td>\n      <td class="sc-pan">\n        <input type="text" class="track-input" value="80" readonly>\n      </td>\n    </tr>\n  <% } %>\n</table>';
-    rulerTemplate = '<li>\n  <table class="track">\n  <tr>\n    <td class="title-cell">&nbsp;</td>\n  </tr>\n  <% for (var i = 0; i < 64; i++) { %>\n    <tr>\n      <td class="sc-gain ruler-cell">\n        <%= (i < 10) ? "0" + i : i %>\n      </td>\n    </tr>\n    <% } %>\n  </table>\n</li>';
+    trackTemplate = "<table class=\"track\">\n  <tr>\n    <td class=\"title-cell\" colspan=3>\n      <%= title %>\n    </td>\n  </tr>\n  <% for (var i = 0; i < 64; i++) { %>\n    <tr>\n      <td class=\"sc-note\">\n        <input type=\"text\" class=\"track-input\" value=\"....\" readonly>\n      </td>\n      <td class=\"sc-gain\">\n        <input type=\"text\" class=\"track-input\" value=\"..\" maxlength=\"2\">\n      </td>\n      <td class=\"sc-pan\">\n        <input type=\"text\" class=\"track-input\" value=\"..\" maxlength=\"2\">\n      </td>\n    </tr>\n  <% } %>\n</table>";
+    rulerTemplate = "<li>\n  <table class=\"track\">\n  <tr>\n    <td class=\"title-cell\">&nbsp;</td>\n  </tr>\n  <% for (var i = 0; i < 64; i++) { %>\n    <tr>\n      <td class=\"sc-gain ruler-cell\">\n        <%= (i < 10) ? \"0\" + i : i %>\n      </td>\n    </tr>\n    <% } %>\n  </table>\n</li>";
     Track = (function(_super) {
 
       __extends(Track, _super);
@@ -21,8 +21,15 @@
       }
 
       Track.prototype.defaults = function() {
+        var gainNode, panNode;
+        gainNode = app.context.createGainNode();
+        panNode = app.context.createPanner();
+        gainNode.connect(panNode);
+        panNode.connect(app.context.destination);
         return {
-          eventList: {}
+          hitlist: {},
+          panNode: panNode,
+          gainNode: gainNode
         };
       };
 
@@ -53,40 +60,55 @@
       };
 
       TrackView.prototype.keyHandle = function(e) {
-        var buffer, eventList, idx, label, line,
-          _this = this;
-        console.log('hi');
-        console.log(this.model);
+        var hitlist, idx, label, line;
         if (!(app.activeBuffer != null)) {
           return false;
         }
         idx = app.buffers.indexOf(app.activeBuffer) + 1;
         label = "C.0" + idx;
         line = $(e.target).closest('tr').index() - 1;
-        eventList = this.model.get('eventList');
-        buffer = app.activeBuffer;
-        if (eventList[line] != null) {
-          console.log(eventList[line]);
-          app.metronome.removeListener("t" + line, eventList[line]);
-        }
-        eventList[line] = (function(buffer) {
-          return function() {
-            return _this.fire(buffer);
-          };
-        })(app.activeBuffer);
-        app.metronome.addListener("t" + line, eventList[line]);
+        hitlist = this.model.get('hitlist');
+        this.updateHit(hitlist, line);
         return $(e.target).val(label);
       };
 
-      TrackView.prototype.fire = function(buffer) {
+      TrackView.prototype.gainHandle = function(e) {
+        var hitlist, line;
+        line = $(e.target).closest('tr').index() - 1;
+        hitlist = this.model.get('hitlist');
+        return this.updateHit(hitlist, line);
+      };
+
+      TrackView.prototype.updateHit = function(hitlist, line) {
+        var gain,
+          _this = this;
+        if (hitlist[line] != null) {
+          app.metronome.removeListener("t" + line, hitlist[line]);
+        }
+        gain = parseFloat(this.$el.find("tr:nth-child(" + (line + 2) + ") .sc-gain input").val());
+        gain = _.isNaN(gain) ? 1.0 : gain / 80;
+        hitlist[line] = (function(buffer) {
+          return function() {
+            return _this.fire({
+              buffer: buffer,
+              gain: gain
+            });
+          };
+        })(app.activeBuffer);
+        return app.metronome.addListener("t" + line, hitlist[line]);
+      };
+
+      TrackView.prototype.fire = function(hit) {
         this.node = app.context.createBufferSource();
-        this.node.buffer = buffer;
-        this.node.connect(app.context.destination);
+        this.node.buffer = hit.buffer;
+        this.node.connect(this.model.get('gainNode'));
+        this.model.get('gainNode').gain.value = hit.gain;
         return this.node.noteOn(0);
       };
 
       TrackView.prototype.events = {
-        'keypress .sc-note > input': 'keyHandle'
+        'keypress .sc-note > input': 'keyHandle',
+        'change .sc-gain > input': 'gainHandle'
       };
 
       return TrackView;
@@ -142,6 +164,18 @@
       app.activeBuffer = app.buffers[index];
       $(this).parent().children().removeClass('active');
       return $(this).addClass('active');
+    });
+    $('input:not([readonly])').on('focus', function() {
+      var that;
+      that = $(this);
+      that.select();
+      setTimeout((function() {
+        return that.select();
+      }), 0);
+      return that.mouseup(function() {
+        that.unbind('mouseup');
+        return false;
+      });
     });
     spaceToggle = false;
     return Mousetrap.bind('space', function(e) {
