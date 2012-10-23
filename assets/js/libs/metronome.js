@@ -291,6 +291,7 @@
     this.worker.addEventListener("message", function (e) {
       that.ticks++;
       that.emitEvent("tick", [that.ticks]);
+      that.emitEvent("t" + that.ticks);
     });
 
   };

@@ -20,8 +20,10 @@
         return Track.__super__.constructor.apply(this, arguments);
       }
 
-      Track.prototype.defaults = {
-        hitlist: []
+      Track.prototype.defaults = function() {
+        return {
+          eventList: {}
+        };
       };
 
       return Track;
@@ -40,9 +42,6 @@
       TrackView.prototype.template = _.template(trackTemplate);
 
       TrackView.prototype.initialize = function() {
-        app.metronome.addListener('tick', function(t) {
-          return console.log(t);
-        });
         return this.render();
       };
 
@@ -51,6 +50,43 @@
           title: this.model.get('title')
         }));
         return $('ul').append(this.el);
+      };
+
+      TrackView.prototype.keyHandle = function(e) {
+        var buffer, eventList, idx, label, line,
+          _this = this;
+        console.log('hi');
+        console.log(this.model);
+        if (!(app.activeBuffer != null)) {
+          return false;
+        }
+        idx = app.buffers.indexOf(app.activeBuffer) + 1;
+        label = "C.0" + idx;
+        line = $(e.target).closest('tr').index() - 1;
+        eventList = this.model.get('eventList');
+        buffer = app.activeBuffer;
+        if (eventList[line] != null) {
+          console.log(eventList[line]);
+          app.metronome.removeListener("t" + line, eventList[line]);
+        }
+        eventList[line] = (function(buffer) {
+          return function() {
+            return _this.fire(buffer);
+          };
+        })(app.activeBuffer);
+        app.metronome.addListener("t" + line, eventList[line]);
+        return $(e.target).val(label);
+      };
+
+      TrackView.prototype.fire = function(buffer) {
+        this.node = app.context.createBufferSource();
+        this.node.buffer = buffer;
+        this.node.connect(app.context.destination);
+        return this.node.noteOn(0);
+      };
+
+      TrackView.prototype.events = {
+        'keypress .sc-note > input': 'keyHandle'
       };
 
       return TrackView;
@@ -95,10 +131,7 @@
       request.onload = function() {
         return app.context.decodeAudioData(request.response, function(buffer) {
           app.buffers.push(buffer);
-          $('.instrument-panel ol').append("<li data-bufferindex=\"" + (app.buffers.length - 1) + "\">\n  " + name + "\n</li>");
-          if (!(typeof activeBuffer !== "undefined" && activeBuffer !== null)) {
-            return app.activeBuffer = buffer;
-          }
+          return $('.instrument-panel ol').append("<li data-bufferindex=\"" + (app.buffers.length - 1) + "\">\n  " + name + "\n</li>");
         });
       };
       return request.send();
@@ -109,10 +142,6 @@
       app.activeBuffer = app.buffers[index];
       $(this).parent().children().removeClass('active');
       return $(this).addClass('active');
-    });
-    app.metronome.addListener('tick', function(t) {
-      $('.highlight').removeClass('highlight');
-      return $(".track tr:nth-child(" + (t - 1) + ")").addClass('highlight');
     });
     spaceToggle = false;
     return Mousetrap.bind('space', function(e) {

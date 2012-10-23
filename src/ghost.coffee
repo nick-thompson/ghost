@@ -6,7 +6,7 @@ $ ->
     metronome: new Metronome(140, 4)
     buffers: []
 
-  # DOM Templates
+  # DOM Templates to be inserted dynamically
   trackTemplate = '''
     <table class="track">
       <tr>
@@ -49,22 +49,41 @@ $ ->
 
   # Track model
   class Track extends Backbone.Model
-    defaults:
-      hitlist: []
+    defaults: ->
+      eventList: {}
 
   class TrackView extends Backbone.View
     tagName: 'li'
     template: _.template trackTemplate
-    # this is incredibly inefficient. should bind events to the metronome
-    # in a better way...
-    initialize: ->
-      app.metronome.addListener 'tick', (t) ->
-        console.log t
-      @render()
+    initialize: -> @render()
     render: ->
       @$el.html @template
         title: @model.get 'title'
       $('ul').append @el
+    keyHandle: (e) ->
+      console.log 'hi'
+      console.log @model
+      return false if not app.activeBuffer?
+      idx = app.buffers.indexOf(app.activeBuffer) + 1
+      label = "C.0#{idx}"
+      line = $(e.target).closest('tr').index() - 1
+      eventList = @model.get 'eventList'
+      buffer = app.activeBuffer
+
+      if eventList[line]?
+        console.log eventList[line]
+        app.metronome.removeListener "t#{line}", eventList[line]
+      eventList[line] = do (buffer = app.activeBuffer) =>
+        () => @fire buffer
+      app.metronome.addListener "t#{line}", eventList[line]
+      $(e.target).val label
+    fire: (buffer) ->
+      @node = app.context.createBufferSource()
+      @node.buffer = buffer
+      @node.connect app.context.destination
+      @node.noteOn 0
+    events:
+      'keypress .sc-note > input': 'keyHandle'
 
   # Build the editor
   $('ul').append _.template rulerTemplate, {}
@@ -105,7 +124,6 @@ $ ->
             #{name}
           </li>
         """
-        app.activeBuffer = buffer if not activeBuffer?
     request.send()
 
   $('.instrument-panel ol').on 'click', 'li', ->
@@ -114,12 +132,9 @@ $ ->
     $(@).parent().children().removeClass 'active'
     $(@).addClass 'active'
 
-  # Metronome row highlighting
-  app.metronome.addListener 'tick', (t) ->
-    $('.highlight').removeClass 'highlight'
-    $(".track tr:nth-child(#{t - 1})").addClass 'highlight'
+  ## Key bindings
 
-  # Key bindings
+  # Space bar starts and stops the metronome
   spaceToggle = false
   Mousetrap.bind 'space', (e) ->
     e.preventDefault()
