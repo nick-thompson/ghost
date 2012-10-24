@@ -24,9 +24,9 @@
         var gainNode, panNode;
         gainNode = app.context.createGainNode();
         panNode = app.context.createPanner();
+        panNode.panningModel = webkitAudioPannerNode.EQUALPOWER;
         gainNode.connect(panNode);
         panNode.connect(app.context.destination);
-        panNode.panningModel = webkitAudioPannerNode.EQUALPOWER;
         return {
           hitlist: {},
           panNode: panNode,
@@ -60,36 +60,21 @@
         return $('#track-list').append(this.el);
       };
 
-      TrackView.prototype.keyHandle = function(e) {
-        var hitlist, idx, label, line;
+      TrackView.prototype.noteHandle = function(e) {
+        var idx;
         if (!(app.activeBuffer != null)) {
           return false;
         }
         idx = app.buffers.indexOf(app.activeBuffer) + 1;
-        label = "C.0" + idx;
-        line = $(e.target).closest('tr').index() - 1;
-        hitlist = this.model.get('hitlist');
-        this.updateHit(hitlist, line);
-        return $(e.target).val(label);
+        $(e.target).val("C.0" + idx);
+        return this.updateHit(e);
       };
 
-      TrackView.prototype.gainHandle = function(e) {
-        var hitlist, line;
-        line = $(e.target).closest('tr').index() - 1;
-        hitlist = this.model.get('hitlist');
-        return this.updateHit(hitlist, line);
-      };
-
-      TrackView.prototype.panHandle = function(e) {
-        var hitlist, line;
-        line = $(e.target).closest('tr').index() - 1;
-        hitlist = this.model.get('hitlist');
-        return this.updateHit(hitlist, line);
-      };
-
-      TrackView.prototype.updateHit = function(hitlist, line) {
-        var gain, pan,
+      TrackView.prototype.updateHit = function(e) {
+        var buffer, bufferIndex, gain, hitlist, line, noteString, pan,
           _this = this;
+        line = $(e.target).closest('tr').index() - 1;
+        hitlist = this.model.get('hitlist');
         if (hitlist[line] != null) {
           app.metronome.removeListener("t" + line, hitlist[line]);
         }
@@ -97,7 +82,10 @@
         gain = _.isNaN(gain) ? 1.0 : gain / 80;
         pan = parseFloat(this.$el.find("tr:nth-child(" + (line + 2) + ") .sc-pan input").val());
         pan = _.isNaN(pan) ? 0.0 : (pan - 40.0) / 80;
-        hitlist[line] = (function(buffer) {
+        noteString = this.$el.find("tr:nth-child(" + (line + 2) + ") .sc-note input").val();
+        bufferIndex = (parseInt(noteString.split('.')[1])) - 1;
+        buffer = app.buffers[bufferIndex];
+        hitlist[line] = (function() {
           return function() {
             return _this.fire({
               buffer: buffer,
@@ -105,25 +93,23 @@
               pan: pan
             });
           };
-        })(app.activeBuffer);
+        })();
         return app.metronome.addListener("t" + line, hitlist[line]);
       };
 
       TrackView.prototype.fire = function(hit) {
-        console.log(hit.pan);
         this.node = app.context.createBufferSource();
         this.node.buffer = hit.buffer;
         this.node.connect(this.model.get('gainNode'));
         this.model.get('gainNode').gain.value = hit.gain;
         this.model.get('panNode').setPosition(hit.pan, 0, .1);
-        console.log(this.model.get('panNode'));
         return this.node.noteOn(0);
       };
 
       TrackView.prototype.events = {
-        'keypress .sc-note > input': 'keyHandle',
-        'change .sc-gain > input': 'gainHandle',
-        'change .sc-pan > input': 'panHandle'
+        'keypress .sc-note > input': 'noteHandle',
+        'change .sc-gain > input': 'updateHit',
+        'change .sc-pan > input': 'updateHit'
       };
 
       return TrackView;

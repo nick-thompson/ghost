@@ -47,50 +47,48 @@ $ ->
     </li>
   """
 
-  # Track model
+  ## Track classes
+
   class Track extends Backbone.Model
 
     defaults: ->
       gainNode = app.context.createGainNode()
       panNode = app.context.createPanner()
+      panNode.panningModel = webkitAudioPannerNode.EQUALPOWER
+
       gainNode.connect panNode
       panNode.connect app.context.destination
-      panNode.panningModel = webkitAudioPannerNode.EQUALPOWER
+
       hitlist: {}
       panNode: panNode
       gainNode: gainNode
 
-  # Track view
   class TrackView extends Backbone.View
+
     tagName: 'li'
     template: _.template trackTemplate
-    initialize: -> @render()
+
+    initialize: ->
+      @render()
+
     render: ->
       @$el.html @template
         title: @model.get 'title'
       $('#track-list').append @el
 
-    keyHandle: (e) ->
+    # Keypress event handler on note-column cells. I'd like to work the MIDI
+    # api into here like a real tracker.
+    noteHandle: (e) ->
       return false if not app.activeBuffer?
       idx = app.buffers.indexOf(app.activeBuffer) + 1
-      label = "C.0#{idx}"
-      line = $(e.target).closest('tr').index() - 1
-      hitlist = @model.get 'hitlist'
-      @updateHit hitlist, line
-      $(e.target).val label
-
-    gainHandle: (e) ->
-      line = $(e.target).closest('tr').index() - 1
-      hitlist = @model.get 'hitlist'
-      @updateHit hitlist, line
-
-    panHandle: (e) ->
-      line = $(e.target).closest('tr').index() - 1
-      hitlist = @model.get 'hitlist'
-      @updateHit hitlist, line
+      $(e.target).val "C.0#{idx}"
+      @updateHit e
 
     # Update the hit registered to a given tick on a given track
-    updateHit: (hitlist, line) ->
+    # Probably could be much more efficient...
+    updateHit: (e) ->
+      line = $(e.target).closest('tr').index() - 1
+      hitlist = @model.get 'hitlist'
       # Remove listener if already exists
       app.metronome.removeListener "t#{line}", hitlist[line] if hitlist[line]?
       # Hit gain
@@ -102,9 +100,10 @@ $ ->
       pan = parseFloat @$el.find("tr:nth-child(#{line+2}) .sc-pan input").val()
       pan = if _.isNaN pan then 0.0 else ((pan - 40.0) / 80)
       # Need a reference to this event listener so to remove it later
-      # When updating hit... check the row for a buffer instead of using
-      # activeBuffer
-      hitlist[line] = do (buffer = app.activeBuffer) =>
+      noteString = @$el.find("tr:nth-child(#{line+2}) .sc-note input").val()
+      bufferIndex = (parseInt noteString.split('.')[1]) - 1
+      buffer = app.buffers[bufferIndex]
+      hitlist[line] = do () =>
         () => @fire
           buffer: buffer
           gain: gain
@@ -112,19 +111,17 @@ $ ->
       app.metronome.addListener "t#{line}", hitlist[line]
 
     fire: (hit) ->
-      console.log hit.pan
       @node = app.context.createBufferSource()
       @node.buffer = hit.buffer
       @node.connect @model.get 'gainNode'
       @model.get('gainNode').gain.value = hit.gain
       @model.get('panNode').setPosition hit.pan, 0, .1
-      console.log @model.get 'panNode'
       @node.noteOn 0
 
     events:
-      'keypress .sc-note > input': 'keyHandle'
-      'change .sc-gain > input': 'gainHandle'
-      'change .sc-pan > input': 'panHandle'
+      'keypress .sc-note > input': 'noteHandle'
+      'change .sc-gain > input': 'updateHit'
+      'change .sc-pan > input': 'updateHit'
 
   ## Build the editor
 
