@@ -1523,18 +1523,18 @@ td {
   color: #f5f5f5;
   font: 12px "courier new";
 }
-ul.track-list {
+ul {
   padding: 0px;
   margin: 0px;
   list-style-type: none;
 }
-ul.track-list li {
+ul li {
   padding: 0px;
   margin: 0px;
   float: left;
   clear: none;
 }
-ul.track-list li:first-child {
+ul li:first-child .track {
   border-left: 1px solid #353535;
 }
 .track {

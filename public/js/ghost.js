@@ -26,6 +26,7 @@
         panNode = app.context.createPanner();
         gainNode.connect(panNode);
         panNode.connect(app.context.destination);
+        panNode.panningModel = webkitAudioPannerNode.EQUALPOWER;
         return {
           hitlist: {},
           panNode: panNode,
@@ -56,7 +57,7 @@
         this.$el.html(this.template({
           title: this.model.get('title')
         }));
-        return $('ul').append(this.el);
+        return $('#track-list').append(this.el);
       };
 
       TrackView.prototype.keyHandle = function(e) {
@@ -79,19 +80,29 @@
         return this.updateHit(hitlist, line);
       };
 
+      TrackView.prototype.panHandle = function(e) {
+        var hitlist, line;
+        line = $(e.target).closest('tr').index() - 1;
+        hitlist = this.model.get('hitlist');
+        return this.updateHit(hitlist, line);
+      };
+
       TrackView.prototype.updateHit = function(hitlist, line) {
-        var gain,
+        var gain, pan,
           _this = this;
         if (hitlist[line] != null) {
           app.metronome.removeListener("t" + line, hitlist[line]);
         }
         gain = parseFloat(this.$el.find("tr:nth-child(" + (line + 2) + ") .sc-gain input").val());
         gain = _.isNaN(gain) ? 1.0 : gain / 80;
+        pan = parseFloat(this.$el.find("tr:nth-child(" + (line + 2) + ") .sc-pan input").val());
+        pan = _.isNaN(pan) ? 0.0 : (pan - 40.0) / 80;
         hitlist[line] = (function(buffer) {
           return function() {
             return _this.fire({
               buffer: buffer,
-              gain: gain
+              gain: gain,
+              pan: pan
             });
           };
         })(app.activeBuffer);
@@ -99,22 +110,26 @@
       };
 
       TrackView.prototype.fire = function(hit) {
+        console.log(hit.pan);
         this.node = app.context.createBufferSource();
         this.node.buffer = hit.buffer;
         this.node.connect(this.model.get('gainNode'));
         this.model.get('gainNode').gain.value = hit.gain;
+        this.model.get('panNode').setPosition(hit.pan, 0, .1);
+        console.log(this.model.get('panNode'));
         return this.node.noteOn(0);
       };
 
       TrackView.prototype.events = {
         'keypress .sc-note > input': 'keyHandle',
-        'change .sc-gain > input': 'gainHandle'
+        'change .sc-gain > input': 'gainHandle',
+        'change .sc-pan > input': 'panHandle'
       };
 
       return TrackView;
 
     })(Backbone.View);
-    $('ul').append(_.template(rulerTemplate, {}));
+    $('#track-list').append(_.template(rulerTemplate, {}));
     for (number = _i = 0; _i <= 7; number = ++_i) {
       new TrackView({
         model: new Track({
