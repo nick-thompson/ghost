@@ -102,6 +102,8 @@ $ ->
       pan = parseFloat @$el.find("tr:nth-child(#{line+2}) .sc-pan input").val()
       pan = if _.isNaN pan then 0.0 else ((pan - 40.0) / 80)
       # Need a reference to this event listener so to remove it later
+      # When updating hit... check the row for a buffer instead of using
+      # activeBuffer
       hitlist[line] = do (buffer = app.activeBuffer) =>
         () => @fire
           buffer: buffer
@@ -155,12 +157,11 @@ $ ->
     $('.beatAccent').removeClass 'beatAccent'
     $(".track tr:nth-child(#{v}n + 2)").addClass 'beatAccent'
 
-  # Load a sample, probably will change the UI on this to a modal
-  $('#sample-load').on 'change', ->
-    url = $(@).val()
-    parts = url.split('/')
-    name = parts[parts.length - 1]
-    $(@).val('')
+  # Load sample prompt
+  $('#new-sample').on 'click', ->
+    # Make this cooler? Prompts are so 2000
+    url = prompt('Enter resource url:')
+    name = prompt('Sample name?')
 
     request = new XMLHttpRequest()
     request.open 'get', url, true
@@ -168,19 +169,17 @@ $ ->
     request.onload = ->
       app.context.decodeAudioData request.response, (buffer) ->
         app.buffers.push(buffer)
-        $('.instrument-panel ol').append """
-          <li data-bufferindex="#{app.buffers.length - 1}">
+        $('#sample-select').append """
+          <option value="#{app.buffers.length - 1}">
             #{name}
-          </li>
+          </option>
         """
     request.send()
 
-  # Mark the active buffer / instrument. Change this to a select2 dropdown
-  $('.instrument-panel ol').on 'click', 'li', ->
-    index = parseInt $(@).data 'bufferindex'
-    app.activeBuffer = app.buffers[index]
-    $(@).parent().children().removeClass 'active'
-    $(@).addClass 'active'
+  # Mark the active buffer / instrument.
+  $('#sample-select').on 'change', ->
+    index = parseInt $(@).val()
+    app.activeBuffer = if _.isNaN index then null else app.buffers[index]
 
   # Select all of the text within an input on focus.
   $('input:not([readonly])').on 'focus', ->

@@ -3,7 +3,6 @@
 
 @grayDark: #353535;
 @grayDarker: #111111;
-@grayDarkest: #0d0d0d;
 @downbeatAccent: #191919;
 
 @green: #939251;
@@ -12,7 +11,7 @@
 @orange: #d0782a;
 
 body {
-  margin: 10px;
+  margin-left: 18px;
   background-color: @grayDarker;
   font: 12px "courier new";
   color: @white;
@@ -29,59 +28,76 @@ td {
   border: 0;
 }
 
-// Configuration row defaults
-.config-panel,
-.load-panel,
-.instrument-panel {
-  height: 80px;
-  background-color: @grayDarkest;
-  border-top: 1px solid @grayDark;
-}
+/*
+ * Main table heading and settings
+ */
 
-.config-panel {
-  width: 100px;
-}
+.brand {
+  text-align: left;
+  font: 32px 'Yellowtail', cursive;
+  color: @white;
+  padding: 8px 0px;
 
-.instrument-panel {
-  width: 190px;
-  vertical-align: top;
-  color: @green;
-  border-left: 1px solid @grayDark;
+  span {
+    font: 12px "courier new";
+    margin-left: 8px;
+  }
 
-  ol {
-    list-style-type: decimal-leading-zero;
-    margin: 0px;
-    margin-left: -6px;
-    margin-top: 2px;
-
-    li {
-      height: 15px;
-      text-align: left;
-    }
-
-    li.active {
-      font-weight: bold;
-    }
-
-    li:hover {
-      cursor: pointer;
-    }
+  .helper {
+    float: right;
+    margin-top: 24px;
   }
 }
 
-.load-panel {
+.settings {
+  padding: 8px 0px;
+
+  .input-prepend {
+    float: left;
+    clear: none;
+    margin-right: 20px;
+  }
+
+  select {
+    float: right;
+    clear: none;
+    height: 26px;
+    background-color: @white;
+    color: @grayDarker;
+    margin-right: 12px;
+  }
+
+  button {
+    float: right;
+    clear: none;
+  }
+}
+
+.input-prepend {
+
+  .add-on {
+    height: 16px;
+    background-color: @grayDark;
+    border-color: @grayDark;
+    color: @tan;
+    text-shadow: none !important;
+    font: 12px "courier new";
+  }
 
   input[type="text"] {
-    width: 400px;
-    height: 14px;
-    background-color: @downbeatAccent;
+    height: 16px;
+    width: 50px;
+    background-color: transparent;
     border-color: @grayDark;
     color: @white;
     font: 12px "courier new";
   }
 }
 
-// To organize tracks side by side
+/*
+ * Stack tracks horizontally
+ */
+
 ul {
   padding: 0px;
   margin: 0px;
@@ -99,7 +115,10 @@ ul {
   }
 }
 
-// Styles for a given track in the editor
+/*
+ * Track styling
+ */
+
 .track {
   background-color: @grayDarker;
   border-top: 1px solid @grayDark;
@@ -110,8 +129,8 @@ ul {
 
   .title-cell {
     height: 50px;
-    background-color: @grayDarkest;
     vertical-align: center;
+    border-bottom: 1px solid @grayDark;
   }
 
   .sc-note {
@@ -158,24 +177,4 @@ input[type="text"].track-input:focus {
 }
 
 // Styles for the config inputs up top
-.input-prepend {
-
-  .add-on {
-    height: 14px;
-    background-color: @grayDark;
-    border-color: @grayDark;
-    color: @tan;
-    text-shadow: none !important;
-    font: 12px "courier new";
-  }
-
-  input[type="text"] {
-    height: 14px;
-    width: 40px;
-    background-color: transparent;
-    border-color: @grayDark;
-    color: @white;
-    font: 12px "courier new";
-  }
-}
 

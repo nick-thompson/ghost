@@ -1469,7 +1469,7 @@ input[type="submit"].btn.btn-mini {
   position: fixed;
 }
 body {
-  margin: 10px;
+  margin-left: 18px;
   background-color: #111111;
   font: 12px "courier new";
   color: #f5f5f5;
@@ -1483,46 +1483,62 @@ td {
   padding: 0px;
   border: 0;
 }
-.config-panel,
-.load-panel,
-.instrument-panel {
-  height: 80px;
-  background-color: #0d0d0d;
-  border-top: 1px solid #353535;
-}
-.config-panel {
-  width: 100px;
-}
-.instrument-panel {
-  width: 190px;
-  vertical-align: top;
-  color: #939251;
-  border-left: 1px solid #353535;
-}
-.instrument-panel ol {
-  list-style-type: decimal-leading-zero;
-  margin: 0px;
-  margin-left: -6px;
-  margin-top: 2px;
-}
-.instrument-panel ol li {
-  height: 15px;
+/*
+ * Main table heading and settings
+ */
+.brand {
   text-align: left;
+  font: 32px 'Yellowtail', cursive;
+  color: #f5f5f5;
+  padding: 8px 0px;
 }
-.instrument-panel ol li.active {
-  font-weight: bold;
+.brand span {
+  font: 12px "courier new";
+  margin-left: 8px;
 }
-.instrument-panel ol li:hover {
-  cursor: pointer;
+.brand .helper {
+  float: right;
+  margin-top: 24px;
 }
-.load-panel input[type="text"] {
-  width: 400px;
-  height: 14px;
-  background-color: #191919;
+.settings {
+  padding: 8px 0px;
+}
+.settings .input-prepend {
+  float: left;
+  clear: none;
+  margin-right: 20px;
+}
+.settings select {
+  float: right;
+  clear: none;
+  height: 26px;
+  background-color: #f5f5f5;
+  color: #111111;
+  margin-right: 12px;
+}
+.settings button {
+  float: right;
+  clear: none;
+}
+.input-prepend .add-on {
+  height: 16px;
+  background-color: #353535;
+  border-color: #353535;
+  color: #ddca7c;
+  text-shadow: none !important;
+  font: 12px "courier new";
+}
+.input-prepend input[type="text"] {
+  height: 16px;
+  width: 50px;
+  background-color: transparent;
   border-color: #353535;
   color: #f5f5f5;
   font: 12px "courier new";
 }
+/*
+ * Stack tracks horizontally
+ */
 ul {
   padding: 0px;
   margin: 0px;
@@ -1537,6 +1553,9 @@ ul li {
 ul li:first-child .track {
   border-left: 1px solid #353535;
 }
+/*
+ * Track styling
+ */
 .track {
   background-color: #111111;
   border-top: 1px solid #353535;
@@ -1549,8 +1568,8 @@ ul li:first-child .track {
 }
 .track .title-cell {
   height: 50px;
-  background-color: #0d0d0d;
   vertical-align: center;
+  border-bottom: 1px solid #353535;
 }
 .track .sc-note {
   width: 30px;
@@ -1582,20 +1601,4 @@ input[type="text"].track-input {
   width: inherit;
   font: inherit;
   color: inherit;
-}
-.input-prepend .add-on {
-  height: 14px;
-  background-color: #353535;
-  border-color: #353535;
-  color: #ddca7c;
-  text-shadow: none !important;
-  font: 12px "courier new";
-}
-.input-prepend input[type="text"] {
-  height: 14px;
-  width: 40px;
-  background-color: transparent;
-  border-color: #353535;
-  color: #f5f5f5;
-  font: 12px "courier new";
 }

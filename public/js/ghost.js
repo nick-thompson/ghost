@@ -156,29 +156,25 @@
       $('.beatAccent').removeClass('beatAccent');
       return $(".track tr:nth-child(" + v + "n + 2)").addClass('beatAccent');
     });
-    $('#sample-load').on('change', function() {
-      var name, parts, request, url;
-      url = $(this).val();
-      parts = url.split('/');
-      name = parts[parts.length - 1];
-      $(this).val('');
+    $('#new-sample').on('click', function() {
+      var name, request, url;
+      url = prompt('Enter resource url:');
+      name = prompt('Sample name?');
       request = new XMLHttpRequest();
       request.open('get', url, true);
       request.responseType = 'arraybuffer';
       request.onload = function() {
         return app.context.decodeAudioData(request.response, function(buffer) {
           app.buffers.push(buffer);
-          return $('.instrument-panel ol').append("<li data-bufferindex=\"" + (app.buffers.length - 1) + "\">\n  " + name + "\n</li>");
+          return $('#sample-select').append("<option value=\"" + (app.buffers.length - 1) + "\">\n  " + name + "\n</option>");
         });
       };
       return request.send();
     });
-    $('.instrument-panel ol').on('click', 'li', function() {
+    $('#sample-select').on('change', function() {
       var index;
-      index = parseInt($(this).data('bufferindex'));
-      app.activeBuffer = app.buffers[index];
-      $(this).parent().children().removeClass('active');
-      return $(this).addClass('active');
+      index = parseInt($(this).val());
+      return app.activeBuffer = _.isNaN(index) ? null : app.buffers[index];
     });
     $('input:not([readonly])').on('focus', function() {
       var that;
