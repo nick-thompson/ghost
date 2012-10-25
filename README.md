@@ -22,7 +22,7 @@ start and stop playback of your pattern.
 
 ### Track Editor
 
-![Ghost Track Editor](https://github.com/nick-thompson/ghost/raw/public/editor-diagram.png)
+![Ghost Track Editor](https://raw.github.com/nick-thompson/ghost/master/public/editor-diagram.png)
 
 * Note value: the note to be played back on that tick.
 * Instrument number: the number of the instrument that will fire the associated note.
