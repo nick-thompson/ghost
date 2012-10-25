@@ -17,13 +17,13 @@ $ ->
       <% for (var i = 0; i < 64; i++) { %>
         <tr>
           <td class="sc-note">
-            <input type="text" class="track-input" value="...." readonly>
+            <input type="text" class="track-input mousetrap" value="...." placeholder="...." readonly>
           </td>
           <td class="sc-gain">
-            <input type="text" class="track-input" value=".." maxlength="2">
+            <input type="text" class="track-input mousetrap" value=".." placeholder=".." maxlength="2">
           </td>
           <td class="sc-pan">
-            <input type="text" class="track-input" value=".." maxlength="2">
+            <input type="text" class="track-input mousetrap" value=".." placeholder=".." maxlength="2">
           </td>
         </tr>
       <% } %>
@@ -76,8 +76,7 @@ $ ->
         title: @model.get 'title'
       $('#track-list').append @el
 
-    # Keypress event handler on note-column cells. I'd like to work the MIDI
-    # api into here like a real tracker.
+    # Keypress event handler on note-column cells. Todo: involve actual midi.
     noteHandle: (e) ->
       return false if not app.activeBuffer?
       idx = app.buffers.indexOf(app.activeBuffer) + 1
@@ -101,6 +100,8 @@ $ ->
       pan = if _.isNaN pan then 0.0 else ((pan - 40.0) / 80)
       # Need a reference to this event listener so to remove it later
       noteString = @$el.find("tr:nth-child(#{line+2}) .sc-note input").val()
+      # Make sure we're not binding hit events on null notes
+      return false if not noteString? or noteString is ''
       bufferIndex = (parseInt noteString.split('.')[1]) - 1
       buffer = app.buffers[bufferIndex]
       hitlist[line] = do () =>
@@ -202,3 +203,53 @@ $ ->
       app.metronome.start()
     spaceToggle = not spaceToggle
 
+  # Delete/backspace resets focused cell
+  Mousetrap.bind ['backspace', 'del'], (e) ->
+    e.preventDefault()
+    active = $('.track-input:focus')
+    return false if $(e.target) is not active
+    active.val('')
+    # Need to force an update on this hit, but don't want to trigger a
+    # keypress event on the note cell or it will register it as a note.
+    if active.attr('readonly')?
+      active = active.parent().next().children('input')
+    active.trigger('change')
+
+  ## Navigation around the grid with the arrow keys
+
+  # Returns the coordinates of the focused cell within a track table, and the
+  # containing track table. Note, the y value is offset by 1 because of the
+  # track title cell
+  locate = (e) ->
+    active = $('.track-input:focus').parent()
+    [active.index(), active.closest('tr').index(), active.closest('table')]
+
+  Mousetrap.bind 'up', (e) ->
+    e.preventDefault()
+    [ax, ay, track] = locate e
+    return false if ay <= 1
+    track.find('tr').eq(ay - 1).find('td').eq(ax).find('.track-input').focus()
+
+  Mousetrap.bind 'down', (e) ->
+    e.preventDefault()
+    [ax, ay, track] = locate e
+    return false if ay >= 64
+    track.find('tr').eq(ay + 1).find('td').eq(ax).find('.track-input').focus()
+
+  Mousetrap.bind 'left', (e) ->
+    e.preventDefault()
+    [ax, ay, track] = locate e
+    if ax <= 0
+      return false if track.parent().index() <= 0
+      track = track.parent().prev().children('table')
+      ax = 3
+    track.find('tr').eq(ay).find('td').eq(ax - 1).find('.track-input').focus()
+
+  Mousetrap.bind 'right', (e) ->
+    e.preventDefault()
+    [ax, ay, track] = locate e
+    if ax >= 2
+      return false if track.parent().index() >= 8
+      track = track.parent().next().children('table')
+      ax = -1
+    track.find('tr').eq(ay).find('td').eq(ax + 1).find('.track-input').focus()

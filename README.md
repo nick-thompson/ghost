@@ -1,4 +1,5 @@
 Todo:
-  * Clean up some code / comments
-  * Bug fixes / refactoring
+  * Stopping metronome (space bar) stops all currently playing sounds
   * Docs
+  * Local file loading
+  * Hit-specific DSP effects

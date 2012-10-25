@@ -4,13 +4,13 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   $(function() {
-    var Track, TrackView, app, number, rulerTemplate, spaceToggle, trackTemplate, _i;
+    var Track, TrackView, app, locate, number, rulerTemplate, spaceToggle, trackTemplate, _i;
     app = {
       context: new webkitAudioContext(),
       metronome: new Metronome(140, 4),
       buffers: []
     };
-    trackTemplate = "<table class=\"track\">\n  <tr>\n    <td class=\"title-cell\" colspan=3>\n      <%= title %>\n    </td>\n  </tr>\n  <% for (var i = 0; i < 64; i++) { %>\n    <tr>\n      <td class=\"sc-note\">\n        <input type=\"text\" class=\"track-input\" value=\"....\" readonly>\n      </td>\n      <td class=\"sc-gain\">\n        <input type=\"text\" class=\"track-input\" value=\"..\" maxlength=\"2\">\n      </td>\n      <td class=\"sc-pan\">\n        <input type=\"text\" class=\"track-input\" value=\"..\" maxlength=\"2\">\n      </td>\n    </tr>\n  <% } %>\n</table>";
+    trackTemplate = "<table class=\"track\">\n  <tr>\n    <td class=\"title-cell\" colspan=3>\n      <%= title %>\n    </td>\n  </tr>\n  <% for (var i = 0; i < 64; i++) { %>\n    <tr>\n      <td class=\"sc-note\">\n        <input type=\"text\" class=\"track-input mousetrap\" value=\"....\" placeholder=\"....\" readonly>\n      </td>\n      <td class=\"sc-gain\">\n        <input type=\"text\" class=\"track-input mousetrap\" value=\"..\" placeholder=\"..\" maxlength=\"2\">\n      </td>\n      <td class=\"sc-pan\">\n        <input type=\"text\" class=\"track-input mousetrap\" value=\"..\" placeholder=\"..\" maxlength=\"2\">\n      </td>\n    </tr>\n  <% } %>\n</table>";
     rulerTemplate = "<li>\n  <table class=\"track\">\n  <tr>\n    <td class=\"title-cell\">&nbsp;</td>\n  </tr>\n  <% for (var i = 0; i < 64; i++) { %>\n    <tr>\n      <td class=\"sc-gain ruler-cell\">\n        <%= (i < 10) ? \"0\" + i : i %>\n      </td>\n    </tr>\n    <% } %>\n  </table>\n</li>";
     Track = (function(_super) {
 
@@ -83,6 +83,9 @@
         pan = parseFloat(this.$el.find("tr:nth-child(" + (line + 2) + ") .sc-pan input").val());
         pan = _.isNaN(pan) ? 0.0 : (pan - 40.0) / 80;
         noteString = this.$el.find("tr:nth-child(" + (line + 2) + ") .sc-note input").val();
+        if (!(noteString != null) || noteString === '') {
+          return false;
+        }
         bufferIndex = (parseInt(noteString.split('.')[1])) - 1;
         buffer = app.buffers[bufferIndex];
         hitlist[line] = (function() {
@@ -175,7 +178,7 @@
       });
     });
     spaceToggle = false;
-    return Mousetrap.bind('space', function(e) {
+    Mousetrap.bind('space', function(e) {
       e.preventDefault();
       if (spaceToggle) {
         app.metronome.stop();
@@ -184,6 +187,68 @@
         app.metronome.start();
       }
       return spaceToggle = !spaceToggle;
+    });
+    Mousetrap.bind(['backspace', 'del'], function(e) {
+      var active;
+      e.preventDefault();
+      active = $('.track-input:focus');
+      if ($(e.target) === !active) {
+        return false;
+      }
+      active.val('');
+      if (active.attr('readonly') != null) {
+        active = active.parent().next().children('input');
+      }
+      return active.trigger('change');
+    });
+    locate = function(e) {
+      var active;
+      active = $('.track-input:focus').parent();
+      return [active.index(), active.closest('tr').index(), active.closest('table')];
+    };
+    Mousetrap.bind('up', function(e) {
+      var ax, ay, track, _ref;
+      e.preventDefault();
+      _ref = locate(e), ax = _ref[0], ay = _ref[1], track = _ref[2];
+      if (ay <= 1) {
+        return false;
+      }
+      return track.find('tr').eq(ay - 1).find('td').eq(ax).find('.track-input').focus();
+    });
+    Mousetrap.bind('down', function(e) {
+      var ax, ay, track, _ref;
+      e.preventDefault();
+      _ref = locate(e), ax = _ref[0], ay = _ref[1], track = _ref[2];
+      if (ay >= 64) {
+        return false;
+      }
+      return track.find('tr').eq(ay + 1).find('td').eq(ax).find('.track-input').focus();
+    });
+    Mousetrap.bind('left', function(e) {
+      var ax, ay, track, _ref;
+      e.preventDefault();
+      _ref = locate(e), ax = _ref[0], ay = _ref[1], track = _ref[2];
+      if (ax <= 0) {
+        if (track.parent().index() <= 0) {
+          return false;
+        }
+        track = track.parent().prev().children('table');
+        ax = 3;
+      }
+      return track.find('tr').eq(ay).find('td').eq(ax - 1).find('.track-input').focus();
+    });
+    return Mousetrap.bind('right', function(e) {
+      var ax, ay, track, _ref;
+      e.preventDefault();
+      _ref = locate(e), ax = _ref[0], ay = _ref[1], track = _ref[2];
+      if (ax >= 2) {
+        if (track.parent().index() >= 8) {
+          return false;
+        }
+        track = track.parent().next().children('table');
+        ax = -1;
+      }
+      return track.find('tr').eq(ay).find('td').eq(ax + 1).find('.track-input').focus();
     });
   });
 
