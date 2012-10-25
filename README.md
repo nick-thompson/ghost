@@ -42,5 +42,8 @@ use the delete key to clear any value in the grid.
 
 ## Todo
 * Stopping metronome (space bar) stops all currently playing sounds
+* Hotkey to switch between instruments
+* ScrollTo focused input.
+* Edit step (skip n lines downward after entering note)?
 * Local file loading
 * Hit-specific DSP effects
