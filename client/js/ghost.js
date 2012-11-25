@@ -41,7 +41,12 @@ var grid = {
         "{{~ it.grid :row:i }}",
           "<tr>",
             "{{~ row :cell:j }}",
-              "<td>C#01 .. .. ....</td>",
+              "<td>",
+                "<input type=\"text\" placeholder=\"....\" value=\"{{= (cell.note || \"\") + (cell.instrument || \"\") }}\">",
+                "<input type=\"text\" placeholder=\"..\" value=\"{{= (cell.gain || \"\") }}\">",
+                "<input type=\"text\" placeholder=\"..\" value=\"{{= (cell.pan || \"\") }}\">",
+                "<input type=\"text\" placeholder=\"....\" value=\"{{= (cell.effect || \"\") + (cell.effectValue || \"\") }}\">",
+              "</td>",
             "{{~}}",
           "</tr>",
         "{{~}}",
@@ -55,9 +60,27 @@ var grid = {
 
 var fragment = document.createElement("div");
 
-$.getJSON("blank.json", function (data) {
+$.getJSON("js/fixtures/blank.json", function (data) {
 
+  fragment.innerHTML = grid.template({ grid: data.grid });
+
+  grid.nodes.rows = Array.prototype.slice.call(fragment.querySelectorAll("tr"));
   document.body.appendChild(fragment.firstChild);
 
+  // Profiling: 26.6ms including paint
+  // 200 BPM at 8 LPB expects a redraw every 37.5ms
+  // Limiting the BPM and LPB at those values leaves at least 10.9ms for 
+  // scheduling sounds. Should be ok... right?
+  window.highlightNextRow = (function () {
+    var i = 0
+      , len = grid.nodes.rows.length;
+    return function () {
+      grid.nodes.rows[i].classList.remove("highlight");
+      if (++i >= len) { i -= len; }
+      grid.nodes.rows[i].classList.add("highlight");
+    };
+  })();
+
 });
+
 

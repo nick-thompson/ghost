@@ -1,0 +1,9 @@
+{
+  "name": "doT",
+  "version": "0.0.0",
+  "commit": "2622024bd41d48573f2cd41bb3140bd0dce3d43e",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/olado/doT.git"
+  }
+}
